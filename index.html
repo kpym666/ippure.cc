@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP 纯净度检测  |  IPPure</title>
+    <style>
+        :root {
+            --bg-main: #060913;
+            --panel-bg: #0b0f19;
+            --panel-border: rgba(56, 189, 248, 0.12);
+            --neon-blue: #38bdf8;
+            --neon-green: #10b981;
+            --neon-amber: #f59e0b;
+            --neon-red: #ef4444;
+            --text-primary: #f1f5f9;
+            --text-secondary: #64748b;
+            --font-mono: "Fira Code", "JetBrains Mono", "Courier New", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(ellipse at top, rgba(56, 189, 248, 0.04), transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.002) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.002) 1px, transparent 1px);
+            background-size: 100% 100%, 25px 25px, 25px 25px;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden; 
+        }
+
+        .console-wrapper {
+            width: 100%;
+            max-width: 850px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            overflow: hidden;
+        }
+
+        
+        .console-header {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-title {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            color: var(--neon-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--neon-green);
+            animation: pulse 2s infinite;
+        }
+
+        /* 主体布局 */
+        .console-body {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            min-height: 280px;
+            min-width: 0; 
+        }
+
+        
+        .dashboard-left {
+            border-right: 1px solid var(--panel-border);
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .type-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .type-value-massive {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            transition: color 0.3s ease;
+        }
+
+        .purity-tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            letter-spacing: 0.5px;
+        }
+
+        
+        .dashboard-right {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            align-content: center;
+            min-width: 0; 
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+            min-width: 0; 
+        }
+
+        .info-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 14px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info-meta {
+            flex: 1;
+            min-width: 0; 
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 500;
+            word-break: break-all; 
+            overflow-wrap: anywhere;
+            white-space: normal;
+        }
+
+        
+        .console-terminal {
+            background: #03050a;
+            border-top: 1px solid var(--panel-border);
+            padding: 14px 20px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: #7f8fa4;
+            height: 110px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .log-line {
+            line-height: 1.5;
+            margin-bottom: 4px;
+            display: flex;
+            gap: 8px;
+            word-break: break-all; 
+            white-space: normal;
+        }
+
+        .log-time {
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .log-success { color: var(--neon-green); }
+        .log-info { color: var(--neon-blue); }
+        .log-warning { color: var(--neon-amber); }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        @media (max-width: 768px) {
+            .console-body {
+                grid-template-columns: 100%; 
+            }
+            .dashboard-left {
+                border-right: none;
+                border-bottom: 1px solid var(--panel-border);
+                padding: 30px 20px;
+            }
+            .dashboard-right {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="console-wrapper">
+        
+        <div class="console-header">
+            <div class="console-title">
+                <span class="status-dot"></span>
+                <span>ippure.cc</span>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary);">
+                IP 纯净度检测
+            </div>
+        </div>
+
+        
+        <div class="console-body">
+            
+            <div class="dashboard-left">
+                <span class="type-label">当前网络类型</span>
+                <div id="main-type-val" class="type-value-massive" style="color: var(--text-secondary);">正在分析...</div>
+                <div id="purity-badge" class="purity-tag">等待扫描</div>
+            </div>
+
+            
+            <div class="dashboard-right">
+                <!-- IP 地址 -->
+                <div class="info-row">
+                    <div class="info-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div class="info-meta">
+                        <div class="info-label">目标 IP 地址 (IP ADDRESS)</div>
+                        <div id="val-ip" class="info-value">--.--.--.--</div>
+                    </div>
+                </div>
+                <!-- 地理位置 -->
+                <div class="info-row">
+                    <div class="info-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+                    </div>
+                    <div class="info-meta">
+                        <div class="info-label">地理位置 (LOCATION)</div>
+                        <div id="val-loc" class="info-value">等待检测</div>
+                    </div>
+                </div>
+                <!-- ASN -->
+                <div class="info-row">
+                    <div class="info-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 9h6v6H9z"/></svg>
+                    </div>
+                    <div class="info-meta">
+                        <div class="info-label">自治系统 (ASN)</div>
+                        <div id="val-asn" class="info-value">AS-----</div>
+                    </div>
+                </div>
+                <!-- 运营商 -->
+                <div class="info-row">
+                    <div class="info-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div class="info-meta">
+                        <div class="info-label">归属运营商 / 网络基础设施 (CARRIER)</div>
+                        <div id="val-org" class="info-value">等待握手</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="console-terminal" id="terminal-log">
+            <div class="log-line">
+                <span class="log-time">[00:00:00]</span>
+                <span class="log-info">系统：核心检测引擎初始化成功。正在自动获取本地网络属性...</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        
+        function logToTerminal(message, type = 'info') {
+            const terminal = document.getElementById('terminal-log');
+            const now = new Date();
+            const timeStr = `[${now.toTimeString().split(' ')[0]}]`;
+            
+            let classType = 'log-info';
+            if (type === 'success') classType = 'log-success';
+            if (type === 'warning') classType = 'log-warning';
+
+            const logLine = document.createElement('div');
+            logLine.className = 'log-line';
+            logLine.innerHTML = `<span class="log-time">${timeStr}</span><span class="${classType}">${message}</span>`;
+            
+            terminal.appendChild(logLine);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        
+        function analyzeIPPurity(asn, org) {
+            const orgStr = (org || '').toLowerCase();
+            const asnStr = (asn || '').toLowerCase();
+
+            
+            const datacenterKeywords = [
+                'hosting', 'cloud', 'server', 'datacenter', 'ovh', 'digitalocean', 'linode', 
+                'vultr', 'aws', 'amazon', 'alibaba', 'tencent', 'cloudflare', 'proxy', 'vpn', 
+                'dedicated', 'm247', 'leaseweb', 'choopa', 'zenlayer', 'colocation', 'he.net',
+                'hurricane electric', 'cogent', 'gtt', 'fastly', 'akamai', 'limelight', 'scaleway',
+                'contabo', 'hetzner', 'hinet-idc', 'ovhcloud'
+            ];
+            
+            
+            const residentialKeywords = [
+                'telecom', 'unicom', 'mobile', 'broadband', 'chinanet', 'fios', 'comcast', 
+                'charter', 'at&t', 'verizon', 'residential', 'hinet', 'so-net', 'kddi', 
+                'softbank', 'moe', 'education', 'university', 'campus', 'starlink', 'rogers',
+                'bell', 'orange', 'vodafone', 'bt-net'
+            ];
+
+            let typeLabel = "未知网络";
+            let badgeText = "未知网络类型";
+            let color = "var(--neon-amber)";
+
+            const isDatacenter = datacenterKeywords.some(kw => orgStr.includes(kw) || asnStr.includes(kw));
+            const isResidential = residentialKeywords.some(kw => orgStr.includes(kw) || asnStr.includes(kw));
+
+            if (isDatacenter) {
+                typeLabel = "IDC 机房";
+                badgeText = "数据中心 / 云服务器";
+                color = "var(--neon-red)";
+            } else if (isResidential) {
+                typeLabel = "家庭宽带";
+                badgeText = "独享住宅宽带";
+                color = "var(--neon-green)";
+            } else {
+                typeLabel = "企业专线";
+                badgeText = "商业专线 / 混合网络";
+                color = "var(--neon-blue)";
+            }
+
+            return { typeLabel, badgeText, color };
+        }
+
+        
+function callback(ip, location, asn, org) {
+    logToTerminal("成功：握手建立，成功拉取本地网络数据集", "success");
+    
+    document.getElementById('val-ip').innerText = ip || '未获取到';
+    document.getElementById('val-loc').innerText = location || '未知位置';
+    document.getElementById('val-asn').innerText = asn || '无';
+    document.getElementById('val-org').innerText = org || '未知运营商';
+
+    logToTerminal(`诊断：正在对目标链路进行路由追踪和属性分析...`, "info");
+
+    const analysis = analyzeIPPurity(asn, org);
+    
+    const mainTypeElement = document.getElementById('main-type-val');
+    mainTypeElement.innerText = analysis.typeLabel;
+    mainTypeElement.style.color = analysis.color;
+    mainTypeElement.style.textShadow = `0 0 15px ${analysis.color}44`;
+
+    const badge = document.getElementById('purity-badge');
+    badge.innerText = analysis.badgeText;
+    badge.style.color = analysis.color;
+    badge.style.borderColor = analysis.color;
+    badge.style.background = `${analysis.color}0d`; 
+
+    // 1. 原有的网络判定完成日志
+    logToTerminal(`报告：网络判定完成。当前网络类型：[${analysis.typeLabel}]（${analysis.badgeText}）`, "success");
+
+    // 2. 📍 新增的 VPS 测量提示语（同样输出到你的虚拟终端日志中）
+    logToTerminal("如需测量 VPS IP 纯净度请执行：curl -L ippure.cc/api/api.php", "info");
+}
+
+
+
+        
+        function executeScan() {
+            logToTerminal("初始化：正在创建网络探测通道...", "info");
+            logToTerminal("诊断：正在发送 GeoIP 和自治系统 (ASN) 查询请求...", "info");
+
+            const oldScript = document.getElementById('jsonp-scanner');
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.id = 'jsonp-scanner';
+            script.src = 'https://ping0.cc/geo/jsonp/callback';
+
+            script.onerror = function() {
+                logToTerminal("错误：探测通道建立超时，或接口服务器已离线。", "warning");
+            };
+
+            document.body.appendChild(script);
+        }
+
+        
+        window.onload = function() {
+            executeScan();
+        };
+    </script>
+</body>
+</html>
