@@ -1,2 +1,87 @@
-# ippure.cc
-IP纯净度检测平台
+# ippure.cc - 极简 IP 纯净度与类型检测工具
+
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20CLI-brightgreen.svg)](#cli-使用)
+[![Status](https://img.shields.io/badge/Status-Active-success.svg)](#)
+
+> 一款专注网络属性核心指标的 IP 纯净度查询平台与轻量化 API。
+
+---
+
+## 📖 项目简介
+
+**ippure.cc** 旨在为网络运维人员、VPS 玩家及开发者提供一个极度直观、快速的 IP 属性检测服务。
+
+与传统信息冗杂、广告密布的查询工具不同，本项目剥离了次要噪音，**直击核心网络属性**。界面采用高辨识度的三色色彩系统，用户无需在繁琐的 Whois 和路由信息中排查，一眼即可看清当前网络节点的本质类型。
+
+---
+
+## ✨ 核心特性
+
+- **视觉分级清晰**：重构传统报告，将复杂的网络类型映射为直观的状态色。
+- **双端支持**：既支持通过浏览器访问 WebUI 进行交互式检测，也支持终端通过 `curl` 脚本快速自动化检测。
+- **极速轻量**：无复杂依赖，接口极简，适合无图形界面的云服务器、边缘节点（VPS / 单板电脑）快速运行。
+
+---
+
+## 🎨 判定逻辑与色彩标识
+
+平台重点将 IP 划分为三大类，并赋予直观的色彩语言：
+
+| 色彩标识 | 网络类型 | 说明与典型场景 |
+| :---: | :--- | :--- |
+| 🟢 **绿色** | **家庭宽带 (Residential)** | 住宅原生 IP，通常纯净度最高，极难被主流流媒体与安全网关拦截。 |
+| 🔵 **蓝色** | **企业专线 (Commercial / Business)** | 商用网络与企业专线，稳定性强，信誉度良好。 |
+| 🔴 **红色** | **IDC 机房 (Data Center / Hosting)** | 云厂商与数据中心 IP，常伴随较高风控权重或限制策略。 |
+
+---
+
+## 🚀 使用指南
+
+### 1. 网页端直接查询
+通过浏览器访问 `https://ippure.cc`，系统会自动获取客户端当前网络出口 IP，并直观呈现类型判断。
+
+### 2. 终端 / VPS 命令行测速
+适合无桌面环境的 Linux 服务器，单行命令即可快速输出检测结果：
+
+```bash
+curl -L ippure.cc/api/api.php
+```
+
+---
+
+## 📡 API 接口说明
+
+开发者可以在自己的自动化运维脚本、VPS 探针或测速工具中直接集成该接口。
+
+- **请求方式**：`GET`
+- **请求地址**：`https://ippure.cc/api/api.php`
+- **返回格式**：`JSON`
+
+#### 返回示例
+```json
+{
+  "code": 200,
+  "data": {
+    "ip": "203.0.113.195",
+    "type": "Data Center",
+    "level": "IDC",
+    "color": "red",
+    "isp": "Cloudflare / DataCenter Provider",
+    "country": "HK"
+  },
+  "msg": "success"
+}
+```
+
+---
+
+ 💡 致敬与鸣谢
+
+本项目界面与产品理念致敬并参考了经典的 ippure.com。我们在此基础上做了二次极简提炼，旨在提供更加专注、开箱即用的轻量级检测体验
+
+---
+
+ 📄 开源协议
+
+本项目基于 [MIT License](LICENSE) 协议分发与共享
