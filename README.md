@@ -61,17 +61,16 @@ curl -L ippure.cc/api/api.php
 #### 返回示例
 ```json
 {
-  "code": 200,
-  "data": {
-    "ip": "203.0.113.195",
-    "type": "Data Center",
-    "level": "IDC",
-    "color": "red",
-    "isp": "Cloudflare / DataCenter Provider",
-    "country": "HK"
-  },
-  "msg": "success"
-}
+===============================================
+       🌐 IP 属性与网络类型检测 (ippure.cc)
+ ===============================================
+  目标 IP:     52.195.160.25
+  地理位置:    日本 Tokyo 東京都
+  自治系统:    AS16509 Amazon.com, Inc.
+  运营商/归属: Amazon Technologies Inc.
+ -----------------------------------------------
+  网络类型:    IDC 机房 (数据中心/云服务器/代理)
+ ===============================================
 ```
 
 ---
